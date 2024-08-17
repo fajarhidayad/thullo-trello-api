@@ -14,6 +14,8 @@ import (
 	"github.com/joho/godotenv"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
+
+	"github.com/gofiber/swagger"
 )
 
 var DB *gorm.DB
@@ -58,6 +60,8 @@ func main() {
 	app.Use(helmet.New())
 	app.Use(cors.New())
 	app.Use(recover.New())
+
+	app.Get("/swagger/*", swagger.HandlerDefault)
 
 	// HealthCheck godoc
 	// @Summary Show the status of server.

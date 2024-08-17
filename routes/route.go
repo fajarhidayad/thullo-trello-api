@@ -1,6 +1,9 @@
 package routes
 
 import (
+	"net/http"
+	"os"
+
 	"github.com/fajarhidayad/thullo-trello-api/handler/auth"
 	"github.com/fajarhidayad/thullo-trello-api/handler/board"
 	"github.com/fajarhidayad/thullo-trello-api/handler/card"
@@ -10,13 +13,29 @@ import (
 	"github.com/fajarhidayad/thullo-trello-api/handler/user"
 	"github.com/gofiber/fiber/v2"
 	"gorm.io/gorm"
+
+	jwtware "github.com/gofiber/contrib/jwt"
 )
+
+var secretKey = os.Getenv("JWT_SECRET")
 
 func Register(api fiber.Router, db *gorm.DB) {
 	// Auth routes
 	auths := api.Group("/auth")
 	auths.Post("/register", auth.RegisterUser(db))
 	auths.Post("/login", auth.SignInUser(db))
+
+	api.Use(jwtware.New(jwtware.Config{
+		SigningKey: jwtware.SigningKey{
+			Key: []byte(secretKey),
+		},
+		ErrorHandler: func(c *fiber.Ctx, err error) error {
+			c.SendStatus(http.StatusUnauthorized)
+			return c.JSON(fiber.Map{
+				"message": "Unauthorized",
+			})
+		},
+	}))
 
 	// User routes
 	users := api.Group("/users")
